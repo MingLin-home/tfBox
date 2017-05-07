@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import time
 
-batch_size = 100*100
+batch_size = 100*10
 
 feature_dim=5000
 max_iter=1000
@@ -13,30 +13,29 @@ end_learning_rate = 0.01
 decay_power = 1.0
 decay_steps = 1013
 input_device_str = '/cpu:0'
-GPU_device_str = '/gpu:0'
+#GPU_device_str = '/cpu:0'
 num_classes = 10
 
 num_loss_blocks = 100
-W_true = np.random.rand(feature_dim,num_classes)
+W_true = np.random.rand(feature_dim,num_classes)/np.sqrt(feature_dim)
 
 def fetch_batch_fn(options=None):
-    new_X = np.random.randn(batch_size,feature_dim)
+    new_X = np.random.randn(batch_size,feature_dim)/np.sqrt(feature_dim)
     new_Y = new_X.dot(W_true)
     return  new_X, new_Y
 pass # end def
 
 with tf.Graph().as_default():
-    with tf.device(GPU_device_str):
-        new_X, new_Y = fetch_batch_fn()
+    # with tf.device(GPU_device_str):
+    new_X, new_Y = fetch_batch_fn()
 
-        X = tf.placeholder(dtype=tf.float32,shape=[batch_size, feature_dim])
-        Y = tf.placeholder(dtype=tf.float32, shape=[batch_size, num_classes])
-        W = tf.Variable(tf.zeros([feature_dim,num_classes]))
-        loss = tf.reduce_sum(tf.square(tf.norm(tf.matmul(X,W) - Y)))
+    X = tf.placeholder(dtype=tf.float32,shape=[batch_size, feature_dim])
+    Y = tf.placeholder(dtype=tf.float32, shape=[batch_size, num_classes])
+    W = tf.Variable(tf.zeros([feature_dim,num_classes]))
+    loss = tf.reduce_sum(tf.square(tf.norm(tf.matmul(X,W) - Y)))
+    # pass # end
 
-    pass # end
-
-    train_op = tf.train.GradientDescentOptimizer(0.00001).minimize(loss)
+    train_op = tf.train.GradientDescentOptimizer(0.0001).minimize(loss)
 
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=False, log_device_placement=False))
     sess.run(tf.global_variables_initializer())
